@@ -200,26 +200,19 @@ internals.Object.prototype._base = function (value, state, options) {
         if (options.stripUnknown ||
             options.skipFunctions) {
 
-            var hasFunctions = false;
             for (var k = 0, kl = unprocessedKeys.length; k < kl; ++k) {
                 key = unprocessedKeys[k];
 
                 if (options.stripUnknown) {
                     delete target[key];
+                    delete unprocessed[key];
                 }
                 else if (typeof target[key] === 'function') {
                     delete unprocessed[key];
-                    hasFunctions = true;
                 }
             }
 
-            if (options.stripUnknown) {
-                return finish();
-            }
-
-            if (hasFunctions) {
-                unprocessedKeys = Object.keys(unprocessed);
-            }
+            unprocessedKeys = Object.keys(unprocessed);
         }
 
         if (unprocessedKeys.length &&
@@ -272,7 +265,11 @@ internals.Object.prototype.keys = function (schema) {
     if (obj._inner.children) {
         for (var i = 0, il = obj._inner.children.length; i < il; ++i) {
             child = obj._inner.children[i];
-            topo.add(child, { after: child._refs, group: child.key });
+
+            // Only add the key if we are not going to replace it later
+            if (children.indexOf(child.key) === -1) {
+                topo.add(child, { after: child._refs, group: child.key });
+            }
         }
     }
 

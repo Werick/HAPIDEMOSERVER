@@ -6,6 +6,7 @@
 
 var Hapi = require('hapi');
 var modules = require('./modules');
+var Good = require('good');
 var routes = require('./modules/hapidemo/hapidemo-routes');
 console.log('Modules', modules)
 
@@ -44,17 +45,39 @@ server.register(plugins, function(err) {
   /**
    * Make sure if this script is being required as a module by another script, we don't start the server.
    */
-  if(!module.parent) {
+  // if(!module.parent) {
+  //   /**
+  //    * Starts the server
+  //    */
+  //   server.start(function () {
+  //     console.log('Hapi server started @', server.info.uri);
+  //   });
+  // }
 
-    /**
-     * Starts the server
-     */
+  server.register({
+    register: Good,
+    options: {
+        reporters: [{
+            reporter: require('good-console'),
+            events: {
+                response: '*',
+                log: '*'
+            }
+        }]
+    }
+}, function (err) {
+    if (err) {
+        throw err; // something bad happened loading the plugin
+    }
+
     server.start(function () {
-      console.log('Hapi server started @', server.info.uri);
+        server.log('info', 'Server running at: ' + server.info.uri);
     });
-  }
+});
 
 });
+
+
 
 /**
  * Add all the modules within the modules folder
